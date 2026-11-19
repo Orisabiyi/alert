@@ -13,9 +13,9 @@
   --color-vermillion: #FF4B26;
   --color-white:      #FFFFFF;
 
-  --font-fat:  "Archivo Black", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Archivo", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-fat:  var(--font-archivo-black), "Archivo Black", ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-archivo), "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
 
   --animate-marquee: marquee 28s linear infinite;
   --animate-row-in: row-in 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
