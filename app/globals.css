@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Neo-brutalist token set. Four colours doing four different jobs
+   rather than one accent on neutral. Nothing is rounded, every shadow
+   is zero-blur, and the paper ground carries a real noise texture.
+------------------------------------------------------------------- */
+@theme {
+  --color-paper:      #F5F1E6;
+  --color-black:      #0A0A0A;
+  --color-lime:       #C9F227;
+  --color-cobalt:     #2C3FE8;
+  --color-vermillion: #FF4B26;
+  --color-white:      #FFFFFF;
+
+  --font-fat:  "Archivo Black", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --animate-marquee: marquee 28s linear infinite;
+  --animate-row-in: row-in 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(-14px) rotate(-2deg); }
+}
+
+@layer base {
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-black);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Paper grain, served from a real texture file. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("/textures/noise.svg");
+    background-size: 200px 200px;
+    opacity: 0.5;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  :focus-visible {
+    outline: 4px solid var(--color-vermillion);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Diagonal hatch panel, from a texture file. */
+  .bg-hatch {
+    background-image: url("/textures/hatch.svg");
+    background-size: 16px 16px;
+  }
+  .bg-rule-grid {
+    background-image: url("/textures/rule-grid.svg");
+    background-size: 48px 48px;
+  }
+}
