@@ -6,6 +6,7 @@ import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 const LINES = ["MONEY", "THAT LANDS", "BEFORE", "THEY LEAVE"] as const;
 const ACCENT_LINE = 2;
+const ACCENT_CLS = "border-[3px] border-black bg-lime px-1 shadow-[5px_5px_0_#0A0A0A]";
 
 /**
  * The headline is a physics world. Each character is a rigid body that
@@ -25,6 +26,8 @@ export function ThrowableHeadline({ className = "" }: { className?: string }) {
   const drag = useRef<{ id: string; dx: number; dy: number; lx: number; ly: number; t: number } | null>(null);
 
   const [ready, setReady] = useState(false);
+  // Bumped on every measurement so rest positions are re-rendered.
+  const [, setLayoutVersion] = useState(0);
   const [live, setLive] = useState(false);
   const [homing, setHoming] = useState(false);
   const reduced = usePrefersReducedMotion();
@@ -54,13 +57,27 @@ export function ThrowableHeadline({ className = "" }: { className?: string }) {
 
     bodies.current = next;
     setReady(true);
+    setLayoutVersion((v) => v + 1);
   }, []);
 
   useLayoutEffect(() => {
     build();
     const ro = new ResizeObserver(() => { if (!live) build(); });
     if (stage.current) ro.observe(stage.current);
-    return () => ro.disconnect();
+    if (measure.current) ro.observe(measure.current);
+
+    // Web fonts swap in after first paint; re-measure once they land so
+    // glyph boxes match the real typeface rather than the fallback.
+    let cancelled = false;
+    const remeasure = () => { if (!cancelled && !live) build(); };
+    document.fonts?.ready.then(remeasure);
+    document.fonts?.addEventListener("loadingdone", remeasure);
+
+    return () => {
+      cancelled = true;
+      ro.disconnect();
+      document.fonts?.removeEventListener("loadingdone", remeasure);
+    };
   }, [build, live]);
 
   useEffect(() => {
@@ -168,7 +185,11 @@ export function ThrowableHeadline({ className = "" }: { className?: string }) {
           {LINES.map((line, li) => (
             <div key={li} className="whitespace-nowrap">
               {line.split("").map((ch, ci) => (
-                <span key={ci} data-char={ch} className="inline-block">
+                <span
+                  key={ci}
+                  data-char={ch}
+                  className={"inline-block" + (li === ACCENT_LINE && ch !== " " ? " " + ACCENT_CLS : "")}
+                >
                   {ch === " " ? "\u00A0" : ch}
                 </span>
               ))}
@@ -184,6 +205,7 @@ export function ThrowableHeadline({ className = "" }: { className?: string }) {
                 const id = "c" + index++;
                 if (ch === " ") return null;
                 const accent = li === ACCENT_LINE;
+                const b = bodies.current[index - 1];
                 return (
                   <span
                     key={id}
@@ -193,10 +215,11 @@ export function ThrowableHeadline({ className = "" }: { className?: string }) {
                     onPointerUp={onUp}
                     onPointerCancel={onUp}
                     aria-hidden
+                    style={b ? { transform: "translate3d(" + b.x + "px," + b.y + "px,0) rotate(" + b.rot + "deg)" } : undefined}
                     className={
                       "absolute left-0 top-0 inline-flex cursor-grab items-center justify-center will-change-transform active:cursor-grabbing " +
                       typeCls +
-                      (accent ? " border-[3px] border-black bg-lime px-1 shadow-[5px_5px_0_#0A0A0A]" : "")
+                      (accent ? " " + ACCENT_CLS : "")
                     }
                   >
                     {ch}
@@ -212,7 +235,7 @@ export function ThrowableHeadline({ className = "" }: { className?: string }) {
             {LINES.map((l, i) => (
               <span key={i} className="block">
                 {i === ACCENT_LINE
-                  ? <span className="border-[3px] border-black bg-lime px-1 shadow-[5px_5px_0_#0A0A0A]">{l}</span>
+                  ? <span className={ACCENT_CLS}>{l}</span>
                   : l}
               </span>
             ))}
